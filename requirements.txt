@@ -1,0 +1,10 @@
+attrs==19.2.0
+importlib-metadata==0.23
+jsonschema==3.1.1
+more-itertools==7.2.0
+ocpp==0.3.2
+pyrsistent==0.15.4
+pyserial==3.4
+six==1.12.0
+websockets==8.0.2
+zipp==0.6.0
