@@ -84,32 +84,7 @@ try:
     status = set_display_color(color_int=6,encode=True)
     status = set_display_color(color_int=7,encode=True)
 
-    # ## en la RPi no es necesario encodear el texto
-    # ## en mac
-    # COMMAND = "$FB 1\r"
-    # ser.write(COMMAND.encode())
-    # ## en RPi
-    # # ser.write(COMMAND)
-    # line = ser.readline()
-    # print(line.decode())
-    # ser.write("$SE 0")
-    # print("flag1")
-    # line = ser.readline()
-    # print("flag2")
-    # print(line)
-    # ser.write("$FB 1\r")
-    # line = ser.readline()
-    # print(line)
-    # ser.write("$FB 4\r")
-    # line = ser.readline()
-    # print(line)
     # ser.write("$FP 0 0 BAILA_DIRA\r")
-    # line = ser.readline()
-    # print(line)
-    # ser.write("$FB 3\r")
-    # line = ser.readline()
-    # print(line)
-    # ser.write("$FB 7\r")
     # line = ser.readline()
     # print(line)
     
