@@ -1,0 +1,8 @@
+#Ignore the virtual environment
+venv_ocpp/
+
+#Ignore screenlog output
+charge_point/screen*
+
+#Ignore this file
+.DS_Store
