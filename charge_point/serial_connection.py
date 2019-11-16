@@ -18,7 +18,7 @@ TIMEOUT = 1 # secs
 # BYTESIZE = serial.EIGHTBITS
 
 
-def get_energy_usage(encode=False):
+def get_energy_usage(ser, encode=False):
     ## command string to get energy usage
     COMMAND = "$GU\r"
     ## write command on serial
@@ -46,7 +46,7 @@ def get_energy_usage(encode=False):
 
     return status, session_energy, global_energy
 
-def set_display_color(color_int=1,encode=False):
+def set_display_color(ser, color_int=1, encode=False):
     ## command string to get energy usage
     COMMAND = "$FB {}\r".format(color_int)
     ## write command on serial
@@ -69,28 +69,41 @@ def set_display_color(color_int=1,encode=False):
     print("status: ", status)
     return status
     
-try:
-    ## open serial connection
-    ser = serial.Serial(SERIAL_NAME,
-                        baudrate=BAUDRATE,
-                        timeout=TIMEOUT)
+def start_connection(serial_name, baud_r, t_out):
+    try:
+        ## open serial connection
+        ser = serial.Serial(serial_name,
+                            baudrate=baud_r,
+                            timeout=t_out)
+        return ser
+    except:
+        print("Connection error, check what is going on")
+
+def end_connetcion(ser):
+    ser.close()
+
+# try:
+#     ## open serial connection
+#     ser = serial.Serial(SERIAL_NAME,
+#                         baudrate=BAUDRATE,
+#                         timeout=TIMEOUT)
     
-    print(ser)
-    ## get values from openEVSE
-    status, session_energy, global_energy = get_energy_usage(encode=True)
-    status = set_display_color(color_int=3,encode=True)
-    status = set_display_color(color_int=4,encode=True)
-    status = set_display_color(color_int=5,encode=True)
-    status = set_display_color(color_int=6,encode=True)
-    status = set_display_color(color_int=7,encode=True)
+#     print(ser)
+#     ## get values from openEVSE
+#     status, session_energy, global_energy = get_energy_usage(encode=True)
+#     status = set_display_color(color_int=3,encode=True)
+#     status = set_display_color(color_int=4,encode=True)
+#     status = set_display_color(color_int=5,encode=True)
+#     status = set_display_color(color_int=6,encode=True)
+#     status = set_display_color(color_int=7,encode=True)
 
-    # ser.write("$FP 0 0 BAILA_DIRA\r")
-    # line = ser.readline()
-    # print(line)
+#     # ser.write("$FP 0 0 BAILA_DIRA\r")
+#     # line = ser.readline()
+#     # print(line)
     
-except:
-    print("Connection error, check what is going on")
+# except:
+#     print("Connection error, check what is going on")
 
-## some aux commands:
+# ## some aux commands:
 
-#ser.close 
+# #ser.close 
