@@ -7,6 +7,9 @@ from ocpp.v16 import ChargePoint as cp
 from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus
 from ocpp.v16 import call_result
 
+#as do not use database, implement an array were you can find
+#all the valid tokens
+valid_tokens = [1234,12345,1111,2222]
 
 class ChargePoint(cp):
     @on(Action.BootNotification)
@@ -19,12 +22,12 @@ class ChargePoint(cp):
 
     @after(Action.BootNotification)
     def after_boot_notification(self, charge_point_vendor, charge_point_model, **kwargs):
-        print("ChargePoint Vendor is: %s", charge_point_vendor)
-        print("ChargePoint Model is: %s",charge_point_model)
+        print("ChargePoint Vendor is: ", charge_point_vendor)
+        print("ChargePoint Model is: ",charge_point_model)
 
     @on(Action.Authorize)
     def on_authorize(self, id_tag):
-        if id_tag == 12345:
+        if int(id_tag) in valid_tokens:
             return call_result.AuthorizePayload(
                 id_tag_info={
                     "status" : AuthorizationStatus.accepted
@@ -37,8 +40,9 @@ class ChargePoint(cp):
                 }
             )
 
+    @after(Action.Authorize)
     def after_authorize(self, id_tag):
-        print("authorization of: %s", id_tag)
+        print("authorization of ", id_tag)
 
 
 async def on_connect(websocket, path):

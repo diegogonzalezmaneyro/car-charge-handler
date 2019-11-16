@@ -6,3 +6,6 @@ charge_point/screen*
 
 #Ignore this file
 .DS_Store
+
+#Ignore pics
+*.jpeg
