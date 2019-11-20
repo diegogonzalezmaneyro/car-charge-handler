@@ -108,8 +108,11 @@ class ChargePoint(cp):
 
         response = await self.call(request)
 
+        global HEARTBEAT_INTERVAL
         if response.status ==  RegistrationStatus.accepted:
             print("Connected to central system.")
+            HEARTBEAT_INTERVAL = response.interval
+
         
     async def send_authorize(self, id_tag_rfid):
         request = call.AuthorizePayload(

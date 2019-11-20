@@ -97,7 +97,8 @@ async def on_connect(websocket, path):
 async def main():
     server = await websockets.serve(
         on_connect,
-        '0.0.0.0',
+        # '0.0.0.0',
+        '192.168.1.7',
         9000,
         subprotocols=['ocpp1.6']
     )
