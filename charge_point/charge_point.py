@@ -1,5 +1,6 @@
 import asyncio
 import websockets
+from datetime import datetime
 
 from ocpp.v16 import call, ChargePoint as cp
 # from ocpp.v16.enums import RegistrationStatus, AvailabilityStatus, AvailabilityType
@@ -12,6 +13,7 @@ CONNECTOR_ID = 1
 CHARGE_POINT_MODEL = "openEVSE-D2V"
 CHARGE_POINT_VENDOR = "Pura Cepa"
 RFID_VALUE = "1234"
+HEARTBEAT_INTERVAL = 1
 
 ######################################
 ######## SERIAL CONNECTION ###########
@@ -101,6 +103,7 @@ def end_connetcion(ser):
 
 class ChargePoint(cp):
     async def send_boot_notification(self, c_p_model, c_p_vendor):
+        await asyncio.sleep(5)
         request = call.BootNotificationPayload(
             charge_point_model = c_p_model,
             charge_point_vendor = c_p_vendor
@@ -113,6 +116,16 @@ class ChargePoint(cp):
             print("Connected to central system.")
             HEARTBEAT_INTERVAL = response.interval
 
+    async def send_heartbeat(self):
+        global HEARTBEAT_INTERVAL
+
+        while True:
+            await asyncio.sleep(HEARTBEAT_INTERVAL)
+            request = call.HeartbeatPayload()
+            response = await self.call(request)
+
+            if response.current_time:
+                print("Heartbeat delivered: ", response.current_time)
         
     async def send_authorize(self, id_tag_rfid):
         request = call.AuthorizePayload(
@@ -172,15 +185,17 @@ async def main():
         con_id = CONNECTOR_ID
         # av_type = AvailabilityType.operative
 
-        ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
-        status_energy, session_energy, global_energy = get_energy_usage(ser,encode=True)
-        end_connetcion(ser)
+        # ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
+        # status_energy, session_energy, global_energy = get_energy_usage(ser,encode=True)
+        # end_connetcion(ser)
+        global_energy = 5
         time_string = "es hoy eh"
         # res_id = 1
         await asyncio.gather(cp.start(), cp.send_boot_notification(c_p_model, c_p_vendor),
-                cp.send_authorize(tag_rfid),
+                # cp.send_authorize(tag_rfid),
+                cp.send_heartbeat(),
                 # cp.send_change_availability(con_id, av_type),
-                cp.send_start_transaction(con_id, tag_rfid, global_energy, time_string)
+                # cp.send_start_transaction(con_id, tag_rfid, global_energy, time_string)
                 )
 
 if __name__ == '__main__':

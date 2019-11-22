@@ -40,6 +40,16 @@ class ChargePoint(cp):
         print("ChargePoint Vendor is: ", charge_point_vendor)
         print("ChargePoint Model is: ",charge_point_model)
 
+    @on(Action.Heartbeat)
+    def on_heartbeat(self):
+        return call_result.HeartbeatPayload(
+            current_time=datetime.utcnow().isoformat()
+        )
+
+    @after(Action.Heartbeat)
+    def after_heartbeat(self):
+        print("Heartbeat: ", datetime.utcnow().isoformat())
+
     @on(Action.Authorize)
     def on_authorize(self, id_tag):
         if int(id_tag) in valid_tokens:
@@ -97,8 +107,8 @@ async def on_connect(websocket, path):
 async def main():
     server = await websockets.serve(
         on_connect,
-        # '0.0.0.0',
-        '192.168.1.7',
+        '0.0.0.0',
+        # '192.168.1.7',
         9000,
         subprotocols=['ocpp1.6']
     )
