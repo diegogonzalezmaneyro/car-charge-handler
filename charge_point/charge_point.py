@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 from datetime import datetime
+from random import randrange
 
 from ocpp.v16 import call, ChargePoint as cp
 # from ocpp.v16.enums import RegistrationStatus, AvailabilityStatus, AvailabilityType
@@ -100,6 +101,11 @@ def start_connection(serial_name, baud_r, t_out):
 def end_connetcion(ser):
     ser.close()
 
+async def evse_status(ser):
+    while True:
+        await asyncio.sleep(5)
+        status_energy, session_energy, global_energy = get_energy_usage(ser,encode=True)
+        set_display_color(ser, color_int=randrange(7), encode=True)
 
 class ChargePoint(cp):
     async def send_boot_notification(self, c_p_model, c_p_vendor):
@@ -166,6 +172,9 @@ class ChargePoint(cp):
         #     print("Connected to central system.")
 
 async def main():
+
+    ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
+
     async with websockets.connect(
         'ws://localhost:9000/CP_1',
          subprotocols=['ocpp1.6']
@@ -191,9 +200,12 @@ async def main():
         global_energy = 5
         time_string = "es hoy eh"
         # res_id = 1
-        await asyncio.gather(cp.start(), cp.send_boot_notification(c_p_model, c_p_vendor),
+        await asyncio.gather(
+                cp.start(),
+                cp.send_boot_notification(c_p_model, c_p_vendor),
                 # cp.send_authorize(tag_rfid),
                 cp.send_heartbeat(),
+                evse_status(ser)
                 # cp.send_change_availability(con_id, av_type),
                 # cp.send_start_transaction(con_id, tag_rfid, global_energy, time_string)
                 )
