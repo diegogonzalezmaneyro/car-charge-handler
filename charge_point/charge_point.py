@@ -70,7 +70,7 @@ async def boot_heartbeat(cp, c_p_model, c_p_vendor):
         # Respuesta: vuelve vacio, corroborar que vuelve algo
 
 async def full_charge(cp, id_tag, connector_id):
-    await asyncio.sleep(10)
+    await asyncio.sleep(15)
     
     # await cp.send_authorize(id_tag)
     # if authorized:
@@ -87,7 +87,7 @@ async def full_charge(cp, id_tag, connector_id):
 async def main():
     #Connection usb-serial with openEVSE and disable
     ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
-    # disable_open_EVSE = set_disable(ser,encode=True)
+    disable_open_EVSE = set_disable(ser,encode=True)
 
     async with websockets.connect(
         'ws://localhost:9000/CP_1',
@@ -111,12 +111,12 @@ async def main():
         # ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
         # status_energy, session_energy, global_energy = get_energy_usage(ser,encode=True)
         # end_connetcion(ser)
-        global_energy = 5
+        # global_energy = 5
         # time_string = datetime.utcnow().isoformat()
         # res_id = 1
         await asyncio.gather(
                 cp.start(),
-                # boot_heartbeat(cp, c_p_model, c_p_vendor),
+                boot_heartbeat(cp, c_p_model, c_p_vendor),
                 # full_charge(cp, tag_rfid, con_id),
                 # cp.send_boot_notification(c_p_model, c_p_vendor),
                 cp.send_authorize(tag_rfid),

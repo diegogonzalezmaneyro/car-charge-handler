@@ -40,7 +40,7 @@ class ChargePoint(cp):
     ################## AUTHORIZE ##########################
     async def send_authorize(self, id_tag_rfid):
         await asyncio.sleep(5)
-        
+        global AUTHORIZED
         request = call.AuthorizePayload(
             id_tag = id_tag_rfid
         )
@@ -48,11 +48,11 @@ class ChargePoint(cp):
         response = await self.call(request)
 
         if response.id_tag_info['status'] ==  RegistrationStatus.accepted:
+            AUTHORIZED = True
             print("Authorizated by central system.")
-            return True
         else:
+            AUTHORIZED = False
             print("For some reason we are out, go home kid")
-            return False
 
     ################## START TRANSACTION ##########################
     async def send_start_transaction(self, connector, id_tag_rfid, meter, timest):
