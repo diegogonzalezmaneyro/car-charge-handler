@@ -6,7 +6,6 @@ class ChargePoint(cp):
 
     ################## BOOT NOTIFICATION ##########################
     async def send_boot_notification(self, c_p_model, c_p_vendor):
-        global HEARTBEAT_INTERVAL
         await asyncio.sleep(5)
 
         request = call.BootNotificationPayload(
@@ -17,17 +16,17 @@ class ChargePoint(cp):
 
         if response.status ==  RegistrationStatus.accepted:
             print("Connected to central system.")
-            HEARTBEAT_INTERVAL = response.interval
-            print("Heartbeat changed to ", HEARTBEAT_INTERVAL," seconds")
+            hb = response.interval
+            print("Heartbeat changed to ", hb," seconds")
+            return(hb)
         else:
             print("Not connected to central system")
 
     ################## HEARTBEAT ##########################
-    async def send_heartbeat(self):
-        global HEARTBEAT_INTERVAL
-        while True:
-            await asyncio.sleep(HEARTBEAT_INTERVAL)
+    async def send_heartbeat(self, hb):
 
+        while True:
+            await asyncio.sleep(hb)
             request = call.HeartbeatPayload()
 
             response = await self.call(request)
@@ -39,8 +38,7 @@ class ChargePoint(cp):
         
     ################## AUTHORIZE ##########################
     async def send_authorize(self, id_tag_rfid):
-        await asyncio.sleep(5)
-        global AUTHORIZED
+        
         request = call.AuthorizePayload(
             id_tag = id_tag_rfid
         )
@@ -48,19 +46,18 @@ class ChargePoint(cp):
         response = await self.call(request)
 
         if response.id_tag_info['status'] ==  RegistrationStatus.accepted:
-            AUTHORIZED = True
-            print("Authorizated by central system.")
+            print(" Authorizated by central system.")
+            return True
         else:
-            AUTHORIZED = False
             print("For some reason we are out, go home kid")
+            return False
 
     ################## START TRANSACTION ##########################
-    async def send_start_transaction(self, connector, id_tag_rfid, meter, timest):
-        global TRANSACTION_ID
+    async def send_start_transaction(self, charge_status, meter, timest):
 
         request = call.StartTransactionPayload(
-            connector_id = connector,
-            id_tag = id_tag_rfid,
+            connector_id = charge_status.connector_id,
+            id_tag = charge_status.rfid,
             meter_start = meter,
             timestamp = timest
             # reservation_id = res_id ### Optional
@@ -68,12 +65,11 @@ class ChargePoint(cp):
 
         response = await self.call(request)
         if response.id_tag_info['status'] ==  AuthorizationStatus.accepted:
-            response.print("Start transaction ACCEPTED")
-            TRANSACTION_ID = response.transaction_id
-            return True
+            print("Start transaction ACCEPTED")
+            return response.transaction_id, True
         else:
             print("Transaction failed")
-            return False
+            return 0, False
 
     ################## METER VALUES ##########################
     async def send_meter_values(self, connector, meter_values_list):
@@ -92,7 +88,7 @@ class ChargePoint(cp):
             print("Error in central system with meter values")
 
     ################## STOP TRANSACTION ##########################
-    async def send_stop_transaction(self, meter_value_stop, trans_id, timest):
+    async def send_stop_transaction(self, meter_value_stop, timest, trans_id):
 
         request = call.StopTransactionPayload(
             meter_stop = meter_value_stop,
@@ -107,8 +103,11 @@ class ChargePoint(cp):
 
         if response:
             print("Stop transaction ",trans_id, ", time: ", timest)
+            #return False to turn off transaction status
+            return False
         else:
             print("Error Stopping transaction")
+            return True
           
     # async def send_change_availability(self, con_id, av_type):
     #     request = call.ChangeAvailabilityPayload(

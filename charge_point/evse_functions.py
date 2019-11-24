@@ -45,7 +45,8 @@ def get_energy_usage(ser, encode=False):
     print(aux)
     status = aux[0]
     print("status: ", status)
-    session_energy = int(aux[1])/3600000
+    # session_energy = int(aux[1])/3600000
+    session_energy = int(aux[1])
     print("session energy: ", session_energy)
     # global_energy = int(aux[2].split("^")[0])/1000
     global_energy = int(aux[2].split("^")[0])

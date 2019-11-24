@@ -32,7 +32,7 @@ class ChargePoint(cp):
     def on_boot_notification(self, charge_point_vendor, charge_point_model, **kwargs):
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
-            interval=5,
+            interval=3,
             status=RegistrationStatus.accepted
         )
 
@@ -85,7 +85,7 @@ class ChargePoint(cp):
         )
 
     @after(Action.StartTransaction)
-    def after_stop_transaction(self, meter_value_stop, trans_id, timest):
+    def after_start_transaction(self, connector_id, id_tag, meter_start, timestamp):
         print("Started transaction in connector {}, from {}, starting meter: {}, timestamp {}".format(connector_id, id_tag, meter_start, timestamp))
 
     ################## METER VALUES ##########################
@@ -109,8 +109,9 @@ class ChargePoint(cp):
 
     @after(Action.StopTransaction)
     def after_stop_transaction(self, meter_stop, timestamp, transaction_id):
-        print("Stop transaction ", transaction_id )
-    
+        print("Stop transaction ", transaction_id, "meter value: ", meter_stop )
+
+    ################## change ##########################
     @on(Action.ChangeAvailability)
     def on_change_avilability(self, connector_id, av_type):
         return call_result.ChangeAvailabilityPayload(
