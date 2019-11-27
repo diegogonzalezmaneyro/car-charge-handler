@@ -27,19 +27,22 @@ class ChargePoint(cp):
     # ### END TEMPLATE ##
 
     ## START ACTIONS ##
+    ################## BOOT NOTIFICATION ##########################
     @on(Action.BootNotification)
     def on_boot_notification(self, charge_point_vendor, charge_point_model, **kwargs):
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
-            interval=10,
+            interval=3,
             status=RegistrationStatus.accepted
         )
 
     @after(Action.BootNotification)
     def after_boot_notification(self, charge_point_vendor, charge_point_model, **kwargs):
-        print("ChargePoint Vendor is: ", charge_point_vendor)
-        print("ChargePoint Model is: ",charge_point_model)
+        print("Boot Notification from:")
+        print("ChargePoint Vendor: ", charge_point_vendor)
+        print("ChargePoint Model: ",charge_point_model)
 
+    ################## HEARTBEAT ##########################
     @on(Action.Heartbeat)
     def on_heartbeat(self):
         return call_result.HeartbeatPayload(
@@ -50,6 +53,7 @@ class ChargePoint(cp):
     def after_heartbeat(self):
         print("Heartbeat: ", datetime.utcnow().isoformat())
 
+    ################## AUTHORIZE ##########################
     @on(Action.Authorize)
     def on_authorize(self, id_tag):
         if int(id_tag) in valid_tokens:
@@ -67,21 +71,12 @@ class ChargePoint(cp):
 
     @after(Action.Authorize)
     def after_authorize(self, id_tag):
-        print("authorization of ", id_tag)
+        print("Authorization requested from: ", id_tag)
 
-    @on(Action.ChangeAvailability)
-    def on_change_avilability(self, connector_id, av_type):
-        return call_result.ChangeAvailabilityPayload(
-            status=AvailabilityStatus.accepted
-        )
-
-    @after(Action.ChangeAvailability)
-    def after_change_avilability(self, connector_id, type):
-        print("Change avilability ready")
-
+    ################## START TRANSACTION ##########################
     @on(Action.StartTransaction)
     def on_start_transaction(self, connector_id, id_tag, meter_start, timestamp):
-        trans_id = 666
+        trans_id = 987
         return call_result.StartTransactionPayload(
             transaction_id = trans_id,
             id_tag_info={
@@ -91,7 +86,43 @@ class ChargePoint(cp):
 
     @after(Action.StartTransaction)
     def after_start_transaction(self, connector_id, id_tag, meter_start, timestamp):
-        print("STARTED transaction in connector {}, from {}, starting meter: {}, timestamp {}".format(connector_id, id_tag, meter_start, timestamp))
+        print("Started transaction in connector {}, from {}, starting meter: {}, timestamp {}".format(connector_id, id_tag, meter_start, timestamp))
+
+    ################## METER VALUES ##########################
+    @on(Action.MeterValues)
+    def on_meter_values(self, connector_id, meter_value):
+        return call_result.MeterValuesPayload(
+        )
+
+    @after(Action.MeterValues)
+    def after_meter_values(self, connector_id, meter_value):
+        print("Received meter values")
+
+    ################## STOP TRANSACTION ##########################
+    @on(Action.StopTransaction)
+    def on_stop_transaction(self, meter_stop, timestamp, transaction_id):
+        return call_result.StopTransactionPayload(
+            # id_tag_info={
+            #     "status" : AuthorizationStatus.accepted
+            # }
+        )
+
+    @after(Action.StopTransaction)
+    def after_stop_transaction(self, meter_stop, timestamp, transaction_id):
+        print("Stop transaction ", transaction_id, "meter value: ", meter_stop )
+
+    ################## change ##########################
+    @on(Action.ChangeAvailability)
+    def on_change_avilability(self, connector_id, av_type):
+        return call_result.ChangeAvailabilityPayload(
+            status=AvailabilityStatus.accepted
+        )
+
+
+    @after(Action.ChangeAvailability)
+    def after_change_avilability(self, connector_id, type):
+        print("Change avilability ready")
+
 
 async def on_connect(websocket, path):
     """ For every new charge point that connects, create a ChargePoint instance
