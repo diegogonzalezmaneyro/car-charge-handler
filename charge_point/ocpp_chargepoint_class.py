@@ -6,7 +6,7 @@ class ChargePoint(cp):
 
     ################## BOOT NOTIFICATION ##########################
     async def send_boot_notification(self, c_p_model, c_p_vendor):
-        await asyncio.sleep(5)
+        await asyncio.sleep(1)
 
         request = call.BootNotificationPayload(
             charge_point_model = c_p_model,
@@ -72,11 +72,17 @@ class ChargePoint(cp):
             return 0, False
 
     ################## METER VALUES ##########################
-    async def send_meter_values(self, connector, meter_values_list):
-
+    async def send_meter_values(self, connector, timestamp, met_value):
+        meter_dict = {
+        "timestamp": timestamp,
+        "sampledValue": [
+            {"value":met_value}]
+        }
         request = call.MeterValuesPayload(
             connector_id = connector,
-            meter_value = meter_values_list
+            meter_value = [
+                [str(timestamp), [int(met_value)]]
+            ]
             # transaction_id = int ### Optional
         )
 

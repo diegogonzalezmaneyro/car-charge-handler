@@ -96,7 +96,7 @@ class ChargePoint(cp):
 
     @after(Action.MeterValues)
     def after_meter_values(self, connector_id, meter_value):
-        print("Received meter values from ", connector_id)
+        print("Received meter values")
 
     ################## STOP TRANSACTION ##########################
     @on(Action.StopTransaction)

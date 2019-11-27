@@ -79,7 +79,7 @@ async def boot_heartbeat(cp, c_p_model, c_p_vendor):
 
 async def full_charge(cp, ser, v_charge):
     global HEARTBEAT_INTERVAL
-    await asyncio.sleep(15)
+    await asyncio.sleep(3)
     while True:
         v_charge.rfid = str(input("ingrese RFID tag:"))
         v_charge.authorize = await cp.send_authorize(v_charge.rfid)
@@ -102,7 +102,7 @@ async def full_charge(cp, ser, v_charge):
                 a+=1
                 await asyncio.sleep(HEARTBEAT_INTERVAL)
                 # status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
-                # await cp.send_meter_values(connector_id, [[[timest], [session_energy]]])
+                await cp.send_meter_values(v_charge.connector_id, timest, str(a))
                 print("meter_values: ", a)
                 if a==4:
                     break
@@ -125,6 +125,7 @@ async def main():
 
     async with websockets.connect(
         'ws://localhost:9000/CP_1',
+        # 'wss://140adf8a.ngrok.io/CP_1',
          subprotocols=['ocpp1.6']
     ) as ws:
 
@@ -159,3 +160,6 @@ async def main():
 
 if __name__ == '__main__':
     asyncio.run(main())
+    # loop = asyncio.get_event_loop()
+    # loop.run_until_complete(main())
+    # loop.close()
