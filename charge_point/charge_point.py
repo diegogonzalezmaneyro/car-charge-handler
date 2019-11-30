@@ -87,6 +87,7 @@ async def full_charge(cp, ser, v_charge):
             # print("entro al authorized")
             timest = datetime.utcnow().isoformat()
             status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
+            status, seted_amps, flag = get_current_settings(ser, encode=True)
             # global_energy = 5
             # print("obtuvo datos")
             v_charge.transaction_id, v_charge.transaction_status = await cp.send_start_transaction(v_charge, global_energy, timest)
@@ -97,11 +98,21 @@ async def full_charge(cp, ser, v_charge):
                 enable_open_EVSE = set_enable(ser,encode=ENCODER)
                 # SET VALUES
                 set_display_color(ser, color_int=5, encode=ENCODER)
+
             a=0
             while True:
                 a+=1
                 await asyncio.sleep(HEARTBEAT_INTERVAL)
                 status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
+                status, current_amps, current_volts = get_charging_data(ser, encode=True)
+                current_disable = disable_by_current(seted_amps,current_amps)
+                if current_disable:
+                    disable_open_EVSE = set_disable(ser, encode=True)
+                    display_color = set_display_color(ser, 5, encode=True)
+                    display_text = set_display_text(ser, 0, "EXCESO CORRIENTE", encode=True)
+                    display_text = set_display_text(ser, 1, "________________", encode=True)
+                    await asyncio.sleep(HEARTBEAT_INTERVAL)
+                    break
                 # await cp.send_meter_values(v_charge.connector_id, timest, str(a))
                 print("meter_values: ", a)
                 if a==4:
@@ -113,7 +124,9 @@ async def full_charge(cp, ser, v_charge):
                 # global_energy = 10
                 print("disable open EVSE")
                 disable_open_EVSE = set_disable(ser, encode=ENCODER)
+                display_color = set_display_color(ser, 4, encode=True)
                 display_text = set_display_text(ser, 0, "APROXIME TARJETA", encode=True)
+                display_text = set_display_text(ser, 1, "________________", encode=True)
                 v_charge.transaction_status = await cp.send_stop_transaction(global_energy, timest, v_charge.transaction_id)
         else:
             print("The RFID number: ", v_charge.rfid, "was not authorized by central system")
