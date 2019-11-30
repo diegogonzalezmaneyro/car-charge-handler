@@ -46,6 +46,52 @@ def get_energy_usage(ser, encode=False):
 
     return status, session_energy, global_energy
 
+def set_enable(ser, encode=False):
+    ## command string to enable EVSE
+    COMMAND = "$FE\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        print(line)
+        aux = line.decode().split("^")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        print(line)
+        aux = line.split("^")
+
+    print(aux)
+    status = aux[0]
+    print("status: ", status)
+    return status
+    
+def set_disable(ser, encode=False):
+    ## command string to disable EVSE
+    COMMAND = "$FD\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        print(line)
+        aux = line.decode().split("^")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        print(line)
+        aux = line.split("^")
+
+    print(aux)
+    status = aux[0]
+    print("status: ", status)
+    return status
+
 def set_display_color(ser, color_int=1, encode=False):
     ## command string to get energy usage
     COMMAND = "$FB {}\r".format(color_int)
@@ -68,7 +114,31 @@ def set_display_color(ser, color_int=1, encode=False):
     status = aux[0]
     print("status: ", status)
     return status
-    
+
+def set_display_text(ser, row, text, encode=False):
+    ## command string to get energy usage
+    COMMAND = "$FP 0 {} {}\r".format(row ,text)
+
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        print(line)
+        aux = line.decode().split("^")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        print(line)
+        aux = line.split("^")
+
+    print(aux)
+    status = aux[0]
+    print("status: ", status)
+    return status
+
 def start_connection(serial_name, baud_r, t_out):
     try:
         ## open serial connection
@@ -82,28 +152,55 @@ def start_connection(serial_name, baud_r, t_out):
 def end_connetcion(ser):
     ser.close()
 
-# try:
-#     ## open serial connection
-#     ser = serial.Serial(SERIAL_NAME,
-#                         baudrate=BAUDRATE,
-#                         timeout=TIMEOUT)
+def set_reset(ser, encode=False):
+    ## command string to reset EVSE
+    COMMAND = "$FR\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.decode().split("^")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.split("^")
+
+    # print(aux)
+    status = aux[0]
+    print("RESET: ", status)
+    return status
+
+try:
+    ## open serial connection
+    ser = serial.Serial(SERIAL_NAME,
+                        baudrate=BAUDRATE,
+                        timeout=TIMEOUT)
     
-#     print(ser)
-#     ## get values from openEVSE
-#     status, session_energy, global_energy = get_energy_usage(encode=True)
-#     status = set_display_color(color_int=3,encode=True)
-#     status = set_display_color(color_int=4,encode=True)
-#     status = set_display_color(color_int=5,encode=True)
-#     status = set_display_color(color_int=6,encode=True)
-#     status = set_display_color(color_int=7,encode=True)
-
-#     # ser.write("$FP 0 0 BAILA_DIRA\r")
-#     # line = ser.readline()
-#     # print(line)
+    print(ser)
+    ## get values from openEVSE
+    enable_open_EVSE = set_enable(ser,encode=True)
+    status, session_energy, global_energy = get_energy_usage(ser, encode=True)
+    status = set_display_color(ser, color_int=2,encode=True)
+    disable_open_EVSE = set_disable(ser, encode=True)
+    reset_status = set_reset(ser, encode=True)
+    # status = set_display_color(ser, color_int=4,encode=True)
+    # status = set_display_color(ser ,color_int=5,encode=True)
+    # status = set_display_color(ser ,color_int=6,encode=True)
+    # status = set_display_color(ser ,color_int=7,encode=True)
+    text = "APROXIME TARJETA"
+    text_rfid = "RFID: 12345_____"
+    status = set_display_text(ser, 0 ,text ,encode=True)
+    status = set_display_text(ser, 1 ,text_rfid ,encode=True)
+    # status = set_display_rfid(ser ,text_rfid ,encode=True)
     
-# except:
-#     print("Connection error, check what is going on")
+except:
+    print("Connection error, check what is going on")
 
-# ## some aux commands:
+## some aux commands:
 
-# #ser.close 
+#ser.close 

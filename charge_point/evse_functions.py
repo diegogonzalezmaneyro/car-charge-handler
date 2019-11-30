@@ -24,6 +24,88 @@ TIMEOUT = 1 # secs
 # STOPBITS = serial.STOPBITS_ONE,
 # BYTESIZE = serial.EIGHTBITS
 
+def start_connection(serial_name, baud_r, t_out):
+    try:
+        ## open serial connection
+        ser = serial.Serial(serial_name,
+                            baudrate=baud_r,
+                            timeout=t_out)
+        return ser
+    except:
+        print("Connection error, check what is going on with the Open_EVSE")
+
+def end_connetcion(ser):
+    ser.close()
+
+def set_enable(ser, encode=False):
+    ## command string to enable EVSE
+    COMMAND = "$FE\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.decode().split("^")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.split("^")
+
+    # print(aux)
+    status = aux[0]
+    print("ENABLE: ", status)
+    return status
+
+def set_reset(ser, encode=False):
+    ## command string to reset EVSE
+    COMMAND = "$FR\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.decode().split("^")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.split("^")
+
+    # print(aux)
+    status = aux[0]
+    print("RESET: ", status)
+    return status
+    
+def set_disable(ser, encode=False):
+    ## command string to disable EVSE
+    COMMAND = "$FD\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.decode().split("^")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.split("^")
+
+    # print(aux)
+    status = aux[0]
+    print("DISABLE: ", status)
+    return status
+
 def get_energy_usage(ser, encode=False):
     ## command string to get energy usage
     COMMAND = "$GU\r"
@@ -42,15 +124,15 @@ def get_energy_usage(ser, encode=False):
         print(line)
         aux = line.split(" ")
     
-    print(aux)
+    # print(aux)
     status = aux[0]
-    print("status: ", status)
+    # print("status: ", status)
     # session_energy = int(aux[1])/3600000
     session_energy = int(aux[1])
-    print("session energy: ", session_energy)
+    # print("session energy: ", session_energy)
     # global_energy = int(aux[2].split("^")[0])/1000
     global_energy = int(aux[2].split("^")[0])
-    print("global energy: ",global_energy)
+    print("ENERGY STATUS: {} ; SESSION ENERGY: {} ; GLOBAL ENERGY: {}".format(status, session_energy, global_energy))
 
     return status, session_energy, global_energy
 
@@ -63,23 +145,23 @@ def set_display_color(ser, color_int=1, encode=False):
         ser.write(COMMAND.encode())
         ## read info
         line = ser.readline()
-        print(line)
+        # print(line)
         aux = line.decode().split("^")
     else:
         ser.write(COMMAND)
         ## read info
         line = ser.readline()
-        print(line)
+        # print(line)
         aux = line.split("^")
 
-    print(aux)
+    # print(aux)
     status = aux[0]
-    print("status: ", status)
+    print("DISPLAY COLOR: ", status)
     return status
 
-def set_enable(ser, encode=False):
-    ## command string to enable EVSE
-    COMMAND = "$FE\r"
+def set_display_text(ser, row, text, encode=False):
+    ## command string to get energy usage
+    COMMAND = "$FP 0 {} {}\r".format(row, text)
     ## write command on serial
     ## if mac --> encode=True
     if encode:
@@ -99,39 +181,3 @@ def set_enable(ser, encode=False):
     status = aux[0]
     print("status: ", status)
     return status
-    
-def set_disable(ser, encode=False):
-    ## command string to disable EVSE
-    COMMAND = "$FD\r"
-    ## write command on serial
-    ## if mac --> encode=True
-    if encode:
-        ser.write(COMMAND.encode())
-        ## read info
-        line = ser.readline()
-        print(line)
-        aux = line.decode().split("^")
-    else:
-        ser.write(COMMAND)
-        ## read info
-        line = ser.readline()
-        print(line)
-        aux = line.split("^")
-
-    print(aux)
-    status = aux[0]
-    print("status: ", status)
-    return status
-
-def start_connection(serial_name, baud_r, t_out):
-    try:
-        ## open serial connection
-        ser = serial.Serial(serial_name,
-                            baudrate=baud_r,
-                            timeout=t_out)
-        return ser
-    except:
-        print("Connection error, check what is going on with the Open_EVSE")
-
-def end_connetcion(ser):
-    ser.close()
