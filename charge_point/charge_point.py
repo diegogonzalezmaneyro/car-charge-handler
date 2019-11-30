@@ -86,45 +86,50 @@ async def full_charge(cp, ser, v_charge):
         if v_charge.authorize:
             # print("entro al authorized")
             timest = datetime.utcnow().isoformat()
-            # status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
-            global_energy = 5
+            status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
+            # global_energy = 5
             # print("obtuvo datos")
             v_charge.transaction_id, v_charge.transaction_status = await cp.send_start_transaction(v_charge, global_energy, timest)
             # print("mando transaccion")
             if v_charge.transaction_status:
                 # ENABLE CHARGE
                 print("enable open EVSE")
-                # enable_open_EVSE = set_enable(ser,encode=ENCODER)
+                enable_open_EVSE = set_enable(ser,encode=ENCODER)
                 # SET VALUES
-                # set_display_color(ser, color_int=5, encode=ENCODER)
+                set_display_color(ser, color_int=5, encode=ENCODER)
             a=0
             while True:
                 a+=1
                 await asyncio.sleep(HEARTBEAT_INTERVAL)
-                # status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
-                await cp.send_meter_values(v_charge.connector_id, timest, str(a))
+                status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
+                # await cp.send_meter_values(v_charge.connector_id, timest, str(a))
                 print("meter_values: ", a)
                 if a==4:
                     break
             v_charge.authorize = await cp.send_authorize(v_charge.rfid)
             if v_charge.authorize:
                 timest = datetime.utcnow().isoformat()
-                # status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
-                global_energy = 10
+                status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
+                # global_energy = 10
                 print("disable open EVSE")
-                # disable_open_EVSE = set_disable(ser, encode=ENCODER)
+                disable_open_EVSE = set_disable(ser, encode=ENCODER)
+                display_text = set_display_text(ser, 0, "APROXIME TARJETA", encode=True)
                 v_charge.transaction_status = await cp.send_stop_transaction(global_energy, timest, v_charge.transaction_id)
         else:
             print("The RFID number: ", v_charge.rfid, "was not authorized by central system")
 
 async def main():
     #Connection usb-serial with openEVSE and disable
-    # ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
-    ser = 1
-    # disable_open_EVSE = set_disable(ser,encode=True)
+    ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
+    disable_open_EVSE = set_disable(ser,encode=True)
+    display_color = set_display_color(ser, 4, encode=True)
+    display_text = set_display_text(ser, 0, "APROXIME TARJETA", encode=True)
+    display_text = set_display_text(ser, 1, "________________", encode=True)
+    # display_text = set_display_text(ser, 0, "HOLA ALFREDO____", encode=True)
+    # display_text = set_display_text(ser, 1, "APROXIME TARJETA", encode=True)
 
     async with websockets.connect(
-        'ws://localhost:9000/CP_1',
+        'ws://localhost:9000/CP_1', 
         # 'wss://140adf8a.ngrok.io/CP_1',
          subprotocols=['ocpp1.6']
     ) as ws:
@@ -159,7 +164,10 @@ async def main():
                 )
 
 if __name__ == '__main__':
+    # Python 3.7
     asyncio.run(main())
+    
+    # python 3.6
     # loop = asyncio.get_event_loop()
     # loop.run_until_complete(main())
     # loop.close()
