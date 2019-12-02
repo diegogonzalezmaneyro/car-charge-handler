@@ -3,7 +3,7 @@ import websockets
 from datetime import datetime
 
 from ocpp.routing import on, after
-from ocpp.v16 import call_result, ChargePoint as cp
+from ocpp.v16 import call, call_result, ChargePoint as cp
 # from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus
 from ocpp.v16.enums import *
 
@@ -111,16 +111,38 @@ class ChargePoint(cp):
     def after_stop_transaction(self, meter_stop, timestamp, transaction_id):
         print("Stop transaction ", transaction_id, "meter value: ", meter_stop )
 
+    ################## REMOTE START TRANS ##########################
+    @on(Action.RemoteStartTransaction)
+    def on_remote_start_transaction(self, id_tag):
+        return call_result.RemoteStartTransactionPayload(
+            status = RemoteStartStopStatus.accepted
+        )
+
+    @after(Action.RemoteStartTransaction)
+    def on_remote_start_trans(self, id_tag):
+        print("Remote start check")
+
+    ################## REMOTE STOP TRANS ##########################
+    @on(Action.RemoteStopTransaction)
+    def on_remote_stop_transaction(self, transaction_id):
+        return call_result.RemoteStopTransactionPayload(
+            status=RemoteStartStopStatus.accepted
+        )
+
+    @after(Action.RemoteStopTransaction)
+    def on_remote_stop_trans(self, transaction_id):
+        print("Remote stop check")
+
     ################## change ##########################
     @on(Action.ChangeAvailability)
-    def on_change_avilability(self, connector_id, av_type):
+    def on_change_availability(self, connector_id, av_type):
         return call_result.ChangeAvailabilityPayload(
             status=AvailabilityStatus.accepted
         )
 
 
     @after(Action.ChangeAvailability)
-    def after_change_avilability(self, connector_id, type):
+    def after_change_availability(self, connector_id, type):
         print("Change avilability ready")
 
 
@@ -133,7 +155,6 @@ async def on_connect(websocket, path):
     cp = ChargePoint(charge_point_id, websocket)
 
     await cp.start()
-
 
 async def main():
     server = await websockets.serve(

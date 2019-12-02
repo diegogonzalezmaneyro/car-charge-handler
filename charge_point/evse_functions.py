@@ -279,7 +279,7 @@ def set_display_text(ser, row, text, encode=False):
 
     # print(aux)
     status = aux[0]
-    print("DISPLAY COLOR: ", status)
+    print("DISPLAY TEXT: ", status)
     return status
 
 #############################################
