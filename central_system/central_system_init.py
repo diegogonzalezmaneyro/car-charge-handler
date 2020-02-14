@@ -9,7 +9,7 @@ from ocpp.v16.enums import *
 
 #as do not use database, implement an array were you can find
 #all the valid tokens
-valid_tokens = [1234,12345,1111,2222]
+valid_tokens = ["a36ef7b0","1234","12345","1111","2222"]
 
 class ChargePoint(cp):
     # ### START TEMPLATE ##
@@ -56,7 +56,7 @@ class ChargePoint(cp):
     ################## AUTHORIZE ##########################
     @on(Action.Authorize)
     def on_authorize(self, id_tag):
-        if int(id_tag) in valid_tokens:
+        if id_tag in valid_tokens:
             return call_result.AuthorizePayload(
                 id_tag_info={
                     "status" : AuthorizationStatus.accepted
