@@ -32,7 +32,7 @@ class ChargePoint(cp):
     def on_boot_notification(self, charge_point_vendor, charge_point_model, **kwargs):
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
-            interval=3,
+            interval=300,
             status=RegistrationStatus.accepted
         )
 

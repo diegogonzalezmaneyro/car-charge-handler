@@ -15,7 +15,7 @@ import serial
 SERIAL_NAME = '/dev/cu.usbserial-A50285BI'
 
 ## connection from RPi
-# SERIAL_NAME = '/dev/ttyUSB0'
+#SERIAL_NAME = '/dev/ttyUSB0'
 
 ## connection settings
 BAUDRATE = 115200
@@ -162,12 +162,15 @@ def get_energy_usage(ser, encode=False):
     
     # print(aux)
     status = aux[0]
+    # status = "ok"
     # print("status: ", status)
     # session_energy = int(aux[1])/3600000
     session_energy = int(aux[1])
+    # session_energy = 100
     # print("session energy: ", session_energy)
     # global_energy = int(aux[2].split("^")[0])/1000
     global_energy = int(aux[2].split("^")[0])
+    # global_energy = 150
     print("ENERGY STATUS: {} ; SESSION ENERGY: {} ; GLOBAL ENERGY: {}".format(status, session_energy, global_energy))
 
     return status, session_energy, global_energy
@@ -231,6 +234,32 @@ def get_current_settings(ser, encode=False):
     print("CURRENT STATUS: {} ; AMPS: {} ; FLAG: {}".format(status, amps, flag))
 
     return status, amps, flag
+
+def get_status(ser, encode=False):
+    ## command string to get current settings
+    COMMAND = "$GS\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.decode().split(" ")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.split(" ")
+        
+    print(aux)
+    status = aux[0]
+    state = int(aux[1])
+    flag = int(aux[2].split("^")[0])
+    print("STATUS: {} ; STATE: {} ; FLAG: {}".format(status, state, flag))
+
+    return status, state, flag 
 
 #############################################
 ################# DISPLAY ###################

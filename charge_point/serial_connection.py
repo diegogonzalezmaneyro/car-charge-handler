@@ -266,6 +266,32 @@ def disable_by_current(current_seted, current_measure):
     else:
         return False
 
+def get_status(ser, encode=False):
+    ## command string to get current settings
+    COMMAND = "$GS\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.decode().split(" ")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.split(" ")
+        
+    print(aux)
+    status = aux[0]
+    state = int(aux[1])
+    flag = int(aux[2].split("^")[0])
+    print("STATUS: {} ; STATE: {} ; FLAG: {}".format(status, state, flag))
+
+    return status, state, flag 
+
 
 try:
     ## open serial connection
@@ -273,9 +299,8 @@ try:
                         baudrate=BAUDRATE,
                         timeout=TIMEOUT)
     
-    print(ser)
     ## get values from openEVSE
-    enable_open_EVSE = set_enable(ser,encode=True)
+    # enable_open_EVSE = set_enable(ser,encode=True)
     # status, session_energy, global_energy = get_energy_usage(ser, encode=True)
     # status = set_display_color(ser, color_int=2,encode=True)
     # disable_open_EVSE = set_disable(ser, encode=True)
@@ -284,17 +309,17 @@ try:
     # status = set_display_color(ser, color_int=4,encode=True)
     # status = set_display_color(ser ,color_int=5,encode=True)
     # status = set_display_color(ser ,color_int=6,encode=True)
-    text = "APROXIME TARJETA"
-    text_rfid = "RFID: 12345_____"
-    status = set_display_text(ser, 0 ,text ,encode=True)
-    status = set_display_text(ser, 1 ,text_rfid ,encode=True)
+    # text = "APROXIME TARJETA"
+    # text_rfid = "RFID: 12345_____"
+    # status = set_display_text(ser, 0 ,text ,encode=True)
+    # status = set_display_text(ser, 1 ,text_rfid ,encode=True)
     # status = set_display_rfid(ser ,text_rfid ,encode=True)
     # status, seted_amps, flag = get_current_settings(ser, encode=True)
     # status, current_amps, current_volts = get_charging_data(ser, encode=True)
     # current_disable = disable_by_current(seted_amps,current_amps)
     # if current_disable:
     #     disable_open_EVSE = set_disable(ser, encode=True)
-
+    status, state, flag =get_status(ser, encode=True)
     # amps_value = 12
     # status = set_current(ser, amps_value,  encode=True)
     # status, min_AMPS, max_AMPS = get_current_capacity(ser, encode=True)
