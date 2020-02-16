@@ -23,18 +23,17 @@ class ChargePoint(cp):
             print("Not connected to central system")
 
     ################## HEARTBEAT ##########################
-    async def send_heartbeat(self, hb):
+    # async def send_heartbeat(self, hb):
+    async def send_heartbeat(self):
 
-        while True:
-            await asyncio.sleep(hb)
-            request = call.HeartbeatPayload()
+        request = call.HeartbeatPayload()
 
-            response = await self.call(request)
+        response = await self.call(request)
 
-            if response.current_time:
-                print("Heartbeat delivered: ", response.current_time)
-            else:
-                print("Heartbeat not delivered")
+        if response.current_time:
+            print("Heartbeat delivered: ", response.current_time)
+        else:
+            print("Heartbeat not delivered")
         
     ################## AUTHORIZE ##########################
     async def send_authorize(self, id_tag_rfid):
@@ -115,6 +114,38 @@ class ChargePoint(cp):
             print("Error Stopping transaction")
             return True
           
+    ################## START REMOTE TRANS ##########################
+    async def send_remote_start_transaction(self):
+
+        request = call.RemoteStartTransactionPayload(
+            id_tag="0"
+        )
+
+        response = await self.call(request)
+        if response.status == RemoteStartStopStatus.accepted:
+            print("Remote start id_tag received")
+            return True
+        else:
+            print("NO START REMOTE")
+            return False
+
+    ################## STOP REMOTE TRANS ##########################
+
+    async def send_remote_stop_transaction(self):
+
+        request = call.RemoteStopTransactionPayload(
+            transaction_id=0
+        )
+
+        response = await self.call(request)
+        if response.status == RemoteStartStopStatus.accepted:
+            print("Remote stop transaction_id received")
+            return True
+        else:
+            print("NO STOP REMOTE")
+            return False
+
+
     # async def send_change_availability(self, con_id, av_type):
     #     request = call.ChangeAvailabilityPayload(
     #         connector_id = con_id,
