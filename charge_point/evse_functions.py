@@ -273,8 +273,8 @@ def get_status(ser, encode=False):
         state = int(aux[1])
         elapsed = int(aux[2].split("^")[0])
     else:
-        status = "ok"
-        state = 0
+        status = "MAL"
+        state = 888
         elapsed = 99
 
     if VERBOSE:
