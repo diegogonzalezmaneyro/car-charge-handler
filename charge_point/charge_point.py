@@ -23,6 +23,7 @@ TRANSACTION_ID = 1
 TRANSACTION_STATUS = False
 METER_VALUES = 0
 CHARGING = False
+WAIT_RFID = False
 # WAITING_TIME = 5 #secs
 
 class VehicleCharge:
@@ -103,6 +104,7 @@ async def boot_heartbeat(cp, ser, c_p_model, c_p_vendor):
 async def full_charge(cp, ser, ws,  v_charge):
     global HEARTBEAT_INTERVAL
     global CHARGING
+    global WAIT_RFID
     # global START_REMOTE
     await asyncio.sleep(10)
     while True:
@@ -134,6 +136,7 @@ async def full_charge(cp, ser, ws,  v_charge):
                     print("enable open EVSE")
                     enable_open_EVSE = set_enable(ser,encode=ENCODER)
                     _, state, _ = get_status(ser, encode=ENCODER)
+                    await asyncio.sleep(5)
                     if state != 3:
                         display_color = set_display_color(ser, 3, encode=True) # color amarillo
                         display_text = set_display_text(ser, 0, "____CONECTAR____", encode=True)
@@ -213,21 +216,29 @@ async def full_charge(cp, ser, ws,  v_charge):
                             display_text = set_display_text(ser, 0, "__TARJETA RFID__", encode=True)
                             display_text = set_display_text(ser, 1, "____NO VALIDA___", encode=True)
                             await asyncio.sleep(5)
+                            send_authorize = False
 
                     a+=1
                     if a==30:
                         break
-                    
-                v_charge.authorize = await cp.send_authorize(v_charge.rfid)
-                if v_charge.authorize:
-                    timest = datetime.utcnow().isoformat()
-                    status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
-                    print("disable open EVSE")
-                    v_charge.transaction_status = await cp.send_stop_transaction(global_energy, timest, v_charge.transaction_id)
-                    if not v_charge.transaction_status:
-                        display_color = set_display_color(ser, 2, encode=True) # color verde
-                        display_text = set_display_text(ser, 0, "___TRANSACCION__", encode=True)
-                        display_text = set_display_text(ser, 1, "_____EXITOSA____", encode=True)
+
+                while True:
+                    if send_authorize:
+                        v_charge.authorize = await cp.send_authorize(v_charge.rfid)
+                        if v_charge.authorize:
+                            timest = datetime.utcnow().isoformat()
+                            status_energy, session_energy, global_energy = get_energy_usage(ser,encode=ENCODER)
+                            print("disable open EVSE")
+                            v_charge.transaction_status = await cp.send_stop_transaction(global_energy, timest, v_charge.transaction_id)
+                            if not v_charge.transaction_status:
+                                display_color = set_display_color(ser, 2, encode=True) # color verde
+                                display_text = set_display_text(ser, 0, "___TRANSACCION__", encode=True)
+                                display_text = set_display_text(ser, 1, "_____EXITOSA____", encode=True)
+                                await asyncio.sleep(5)
+                                break
+                        
+                    else:
+                        send_authorize, rfid_readed = check_rfid_input()
                         await asyncio.sleep(5)
                         
 
