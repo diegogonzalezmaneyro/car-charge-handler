@@ -1,5 +1,6 @@
 import asyncio
-from ocpp.v16 import call, ChargePoint as cp
+from ocpp.routing import on, after
+from ocpp.v16 import call, call_result, ChargePoint as cp
 from ocpp.v16.enums import *
 
 class ChargePoint(cp):
@@ -114,45 +115,31 @@ class ChargePoint(cp):
             print("Error Stopping transaction")
             return True
           
-    ################## START REMOTE TRANS ##########################
-    async def send_remote_start_transaction(self):
-
-        request = call.RemoteStartTransactionPayload(
-            id_tag="0"
+    ############# REMOTE START TRANSACTION ##################
+    @on(Action.RemoteStartTransaction)
+    def on_remote_start_transaction(self, id_tag):
+        print('por ahora acepto todo: ',id_tag)
+        return call_result.RemoteStartTransactionPayload(
+            status=RemoteStartStopStatus.accepted
         )
+        global CHARGING
+        
+        # return call_result.AuthorizePayload(
+        #     id_tag_info={
+        #         "status" : AuthorizationStatus.invalid
+        #     }
+        # )
 
-        response = await self.call(request)
-        if response.status == RemoteStartStopStatus.accepted:
-            print("Remote start id_tag received")
-            return True
-        else:
-            print("NO START REMOTE")
-            return False
-
-    ################## STOP REMOTE TRANS ##########################
-
-    async def send_remote_stop_transaction(self):
-
-        request = call.RemoteStopTransactionPayload(
-            transaction_id=0
+    ############# REMOTE START TRANSACTION ##################
+    @on(Action.RemoteStopTransaction)
+    def on_remote_end_transaction(self, transaction_id):
+        print('por ahora acepto todo: ',transaction_id)
+        return call_result.RemoteStartTransactionPayload(
+            status=RemoteStartStopStatus.accepted
         )
+        # return call_result.AuthorizePayload(
+        #     id_tag_info={
+        #         "status" : AuthorizationStatus.invalid
+        #     }
+        # )
 
-        response = await self.call(request)
-        if response.status == RemoteStartStopStatus.accepted:
-            print("Remote stop transaction_id received")
-            return True
-        else:
-            print("NO STOP REMOTE")
-            return False
-
-
-    # async def send_change_availability(self, con_id, av_type):
-    #     request = call.ChangeAvailabilityPayload(
-    #         connector_id = con_id,
-    #         type = av_type
-    #     )
-
-    #     response = await self.call(request)
-
-    #     if response.status ==  AvailabilityStatus.accepted:
-    #         print("Change avilability correct.")
