@@ -9,7 +9,7 @@ from ocpp.v16.enums import *
 
 #as do not use database, implement an array were you can find
 #all the valid tokens
-valid_tokens = [1234,12345,1111,2222]
+valid_tokens = ["a36ef7b0","1234","12345","1111","2222"]
 
 class ChargePoint_listener(cp):
     # ### START TEMPLATE ##
@@ -32,7 +32,7 @@ class ChargePoint_listener(cp):
     def on_boot_notification(self, charge_point_vendor, charge_point_model, **kwargs):
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
-            interval=3,
+            interval=300,
             status=RegistrationStatus.accepted
         )
 
@@ -56,7 +56,7 @@ class ChargePoint_listener(cp):
     ################## AUTHORIZE ##########################
     @on(Action.Authorize)
     def on_authorize(self, id_tag):
-        if int(id_tag) in valid_tokens:
+        if id_tag in valid_tokens:
             return call_result.AuthorizePayload(
                 id_tag_info={
                     "status" : AuthorizationStatus.accepted
@@ -111,16 +111,38 @@ class ChargePoint_listener(cp):
     def after_stop_transaction(self, meter_stop, timestamp, transaction_id):
         print("Stop transaction ", transaction_id, "meter value: ", meter_stop )
 
+    ################## REMOTE START TRANS ##########################
+    @on(Action.RemoteStartTransaction)
+    def on_remote_start_transaction(self, id_tag):
+        return call_result.RemoteStartTransactionPayload(
+            status = RemoteStartStopStatus.accepted
+        )
+
+    @after(Action.RemoteStartTransaction)
+    def on_remote_start_trans(self, id_tag):
+        print("Remote start check")
+
+    ################## REMOTE STOP TRANS ##########################
+    @on(Action.RemoteStopTransaction)
+    def on_remote_stop_transaction(self, transaction_id):
+        return call_result.RemoteStopTransactionPayload(
+            status=RemoteStartStopStatus.accepted
+        )
+
+    @after(Action.RemoteStopTransaction)
+    def on_remote_stop_trans(self, transaction_id):
+        print("Remote stop check")
+
     ################## change ##########################
     @on(Action.ChangeAvailability)
-    def on_change_avilability(self, connector_id, av_type):
+    def on_change_availability(self, connector_id, av_type):
         return call_result.ChangeAvailabilityPayload(
             status=AvailabilityStatus.accepted
         )
 
 
     @after(Action.ChangeAvailability)
-    def after_change_avilability(self, connector_id, type):
+    def after_change_availability(self, connector_id, type):
         print("Change avilability ready")
 
     ################# REMOTE START TRANSACTION ##################
@@ -181,7 +203,6 @@ async def on_connect(websocket, path):
                 )
     # await cp.start()
     print('after cp.start')
-
 
 
 async def main():

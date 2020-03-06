@@ -15,7 +15,7 @@ import serial
 SERIAL_NAME = '/dev/cu.usbserial-A50285BI'
 
 ## connection from RPi
-# SERIAL_NAME = '/dev/ttyUSB0'
+#SERIAL_NAME = '/dev/ttyUSB0'
 
 ## connection settings
 BAUDRATE = 115200
@@ -23,7 +23,7 @@ TIMEOUT = 1 # secs
 # PARITY = serial.PARITY_NONE,
 # STOPBITS = serial.STOPBITS_ONE,
 # BYTESIZE = serial.EIGHTBITS
-
+VERBOSE = True
 
 #############################################
 ################ CONNECTION #################
@@ -63,9 +63,10 @@ def set_enable(ser, encode=False):
         # print(line)
         aux = line.split("^")
 
-    # print(aux)
     status = aux[0]
-    print("ENABLE: ", status)
+    if VERBOSE:
+        print('RESPONSE: ', aux)
+        print("ENABLE: ", status)
     return status
 
 def set_reset(ser, encode=False):
@@ -86,9 +87,11 @@ def set_reset(ser, encode=False):
         # print(line)
         aux = line.split("^")
 
-    # print(aux)
     status = aux[0]
-    print("RESET: ", status)
+    if VERBOSE:
+        print('RESPONSE: ', aux)
+        print("RESET: ", status)
+
     return status
     
 def set_disable(ser, encode=False):
@@ -109,9 +112,11 @@ def set_disable(ser, encode=False):
         # print(line)
         aux = line.split("^")
 
-    # print(aux)
     status = aux[0]
-    print("DISABLE: ", status)
+    if VERBOSE:
+        print('RESPONSE: ', aux)
+        print("DISABLE: ", status)
+
     return status
 
 #############################################
@@ -137,9 +142,11 @@ def set_current(ser, amps,  encode=False):
         print(line)
         aux = line.split(" ")
     
-    print(aux)
     status = aux[0]
-    print("SET CURRENT: ", status)
+    if VERBOSE:
+        print('RESPONSE: ', aux)
+        print("SET CURRENT: ", status)
+
     return status
 
 def get_energy_usage(ser, encode=False):
@@ -160,15 +167,20 @@ def get_energy_usage(ser, encode=False):
         # print(line)
         aux = line.split(" ")
     
-    # print(aux)
-    status = aux[0]
-    # print("status: ", status)
-    # session_energy = int(aux[1])/3600000
-    session_energy = int(aux[1])
-    # print("session energy: ", session_energy)
-    # global_energy = int(aux[2].split("^")[0])/1000
-    global_energy = int(aux[2].split("^")[0])
-    print("ENERGY STATUS: {} ; SESSION ENERGY: {} ; GLOBAL ENERGY: {}".format(status, session_energy, global_energy))
+    if len(aux) == 3:
+        status = aux[0]
+        session_energy = int(aux[1])
+        global_energy = int(aux[2].split("^")[0])
+    else:
+        status = "ok"
+        # session_energy = int(aux[1])/3600000
+        session_energy = 99
+        # global_energy = int(aux[2].split("^")[0])/1000
+        global_energy = 99
+    
+    if VERBOSE:
+        print('RESPONSE: ', aux)
+        print("ENERGY STATUS: {} ; SESSION ENERGY: {} ; GLOBAL ENERGY: {}".format(status, session_energy, global_energy))
 
     return status, session_energy, global_energy
 
@@ -190,15 +202,18 @@ def get_charging_data(ser, encode=False):
         print(line)
         aux = line.split(" ")
     
-    print(aux)
-    status = aux[0]
-    print("status: ", status)
-    # session_energy = int(aux[1])/3600000
-    current_AMMETER = int(aux[1])
-    # print("session energy: ", session_energy)
-    # global_energy = int(aux[2].split("^")[0])/1000
-    current_VOLTMETER = int(aux[2].split("^")[0])
-    print("CHARGING STATUS: {} ; CURRENT AMP: {} ; GLOBAL ENERGY: {}".format(status, current_AMMETER, current_VOLTMETER))
+    if len(aux) == 3:
+        status = aux[0]
+        current_AMMETER = int(aux[1])
+        current_VOLTMETER = int(aux[2].split("^")[0])
+    else:
+        status = "ok"
+        current_AMMETER = 99
+        current_VOLTMETER = 99
+    
+    if VERBOSE:
+        print('RESPONSE: ', aux)
+        print("CHARGING STATUS: {} ; CURRENT AMP: {} ; GLOBAL ENERGY: {}".format(status, current_AMMETER, current_VOLTMETER))
 
     return status, current_AMMETER, current_VOLTMETER
 
@@ -219,18 +234,54 @@ def get_current_settings(ser, encode=False):
         line = ser.readline()
         # print(line)
         aux = line.split(" ")
-    
-    # print(aux)
-    status = aux[0]
-    # print("status: ", status)
-    # session_energy = int(aux[1])/3600000
-    amps = int(aux[1])
-    # print("session energy: ", session_energy)
-    # global_energy = int(aux[2].split("^")[0])/1000
-    flag = int(aux[2].split("^")[0])
-    print("CURRENT STATUS: {} ; AMPS: {} ; FLAG: {}".format(status, amps, flag))
+
+    if len(aux) == 3:
+        status = aux[0]
+        amps = int(aux[1])
+        flag = int(aux[2].split("^")[0])
+    else:
+        status = "ok"
+        amps = 99
+        flag = 99
+
+    if VERBOSE:
+        print('RESPONSE: ', aux)
+        print("CURRENT STATUS: {} ; AMPS: {} ; FLAG: {}".format(status, amps, flag))
 
     return status, amps, flag
+
+def get_status(ser, encode=False):
+    ## command string to get current settings
+    COMMAND = "$GS\r"
+    ## write command on serial
+    ## if mac --> encode=True
+    if encode:
+        ser.write(COMMAND.encode())
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.decode().split(" ")
+    else:
+        ser.write(COMMAND)
+        ## read info
+        line = ser.readline()
+        # print(line)
+        aux = line.split(" ")
+        
+    if len(aux) == 3:
+        status = aux[0]
+        state = int(aux[1])
+        elapsed = int(aux[2].split("^")[0])
+    else:
+        status = "MAL"
+        state = 888
+        elapsed = 99
+
+    if VERBOSE:
+        print('RESPONSE: ', aux)
+        print("STATUS: {} ; STATE: {} ; FLAG: {}".format(status, state, elapsed))
+
+    return status, state, elapsed 
 
 #############################################
 ################# DISPLAY ###################
@@ -254,9 +305,11 @@ def set_display_color(ser, color_int=1, encode=False):
         # print(line)
         aux = line.split("^")
 
-    # print(aux)
     status = aux[0]
-    print("DISPLAY COLOR: ", status)
+    if VERBOSE:
+        print(aux)
+        print("DISPLAY COLOR: ", status)
+    
     return status
 
 def set_display_text(ser, row, text, encode=False):
@@ -277,9 +330,11 @@ def set_display_text(ser, row, text, encode=False):
         # print(line)
         aux = line.split("^")
 
-    # print(aux)
     status = aux[0]
-    print("DISPLAY COLOR: ", status)
+    if VERBOSE:
+        print(aux)
+        print("DISPLAY TEXT: ", status)
+    
     return status
 
 #############################################

@@ -24,18 +24,17 @@ class ChargePoint(cp):
             print("Not connected to central system")
 
     ################## HEARTBEAT ##########################
-    async def send_heartbeat(self, hb):
+    # async def send_heartbeat(self, hb):
+    async def send_heartbeat(self):
 
-        while True:
-            await asyncio.sleep(hb)
-            request = call.HeartbeatPayload()
+        request = call.HeartbeatPayload()
 
-            response = await self.call(request)
+        response = await self.call(request)
 
-            if response.current_time:
-                print("Heartbeat delivered: ", response.current_time)
-            else:
-                print("Heartbeat not delivered")
+        if response.current_time:
+            print("Heartbeat delivered: ", response.current_time)
+        else:
+            print("Heartbeat not delivered")
         
     ################## AUTHORIZE ##########################
     async def send_authorize(self, id_tag_rfid):
@@ -143,3 +142,4 @@ class ChargePoint(cp):
         #         "status" : AuthorizationStatus.invalid
         #     }
         # )
+
