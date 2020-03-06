@@ -1,5 +1,6 @@
 import asyncio
-from ocpp.v16 import call, ChargePoint as cp
+from ocpp.routing import on, after
+from ocpp.v16 import call, call_result, ChargePoint as cp
 from ocpp.v16.enums import *
 
 class ChargePoint(cp):
@@ -115,13 +116,30 @@ class ChargePoint(cp):
             print("Error Stopping transaction")
             return True
           
-    # async def send_change_availability(self, con_id, av_type):
-    #     request = call.ChangeAvailabilityPayload(
-    #         connector_id = con_id,
-    #         type = av_type
-    #     )
+    ############# REMOTE START TRANSACTION ##################
+    @on(Action.RemoteStartTransaction)
+    def on_remote_start_transaction(self, id_tag):
+        print('por ahora acepto todo: ',id_tag)
+        return call_result.RemoteStartTransactionPayload(
+            status=RemoteStartStopStatus.accepted
+        )
+        global CHARGING
+        
+        # return call_result.AuthorizePayload(
+        #     id_tag_info={
+        #         "status" : AuthorizationStatus.invalid
+        #     }
+        # )
 
-    #     response = await self.call(request)
-
-    #     if response.status ==  AvailabilityStatus.accepted:
-    #         print("Change avilability correct.")
+    ############# REMOTE START TRANSACTION ##################
+    @on(Action.RemoteStopTransaction)
+    def on_remote_end_transaction(self, transaction_id):
+        print('por ahora acepto todo: ',transaction_id)
+        return call_result.RemoteStartTransactionPayload(
+            status=RemoteStartStopStatus.accepted
+        )
+        # return call_result.AuthorizePayload(
+        #     id_tag_info={
+        #         "status" : AuthorizationStatus.invalid
+        #     }
+        # )

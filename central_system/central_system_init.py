@@ -3,7 +3,7 @@ import websockets
 from datetime import datetime
 
 from ocpp.routing import on, after
-from ocpp.v16 import call_result, ChargePoint as cp
+from ocpp.v16 import call, call_result, ChargePoint as cp
 # from ocpp.v16.enums import Action, RegistrationStatus, AuthorizationStatus
 from ocpp.v16.enums import *
 
@@ -11,7 +11,7 @@ from ocpp.v16.enums import *
 #all the valid tokens
 valid_tokens = [1234,12345,1111,2222]
 
-class ChargePoint(cp):
+class ChargePoint_listener(cp):
     # ### START TEMPLATE ##
     # @on(Action.ACTION_NAME)
     # def on_ACTION_NAME(self, VARS):
@@ -123,6 +123,48 @@ class ChargePoint(cp):
     def after_change_avilability(self, connector_id, type):
         print("Change avilability ready")
 
+    ################# REMOTE START TRANSACTION ##################
+    async def send_remote_start_transaction(self, id_tag_cs):
+        
+        request = call.RemoteStartTransactionPayload(
+            id_tag = id_tag_cs
+        )
+
+        response = await self.call(request)
+
+        if response.status ==  RemoteStartStopStatus.accepted:
+            print(" Start transaction from central system accepted!")
+        else:
+            print("Start transaction from central system rejected!")
+
+    ################# REMOTE END TRANSACTION ##################
+    async def send_remote_end_transaction(self, transaction_id_cs):
+        
+        request = call.RemoteStopTransactionPayload(
+            transaction_id = transaction_id_cs
+        )
+
+        response = await self.call(request)
+
+        if response.status ==  RemoteStartStopStatus.accepted:
+            print(" Stop transaction from central system accepted!")
+        else:
+            print("Stop transaction from central system rejected!")
+
+
+# FIRST CORE FUNCTION
+async def remote_test(cp):
+    print('Start remote transaction test')
+    await asyncio.sleep(7)
+    id_tag_cs = "1234"
+    _ = await cp.send_remote_start_transaction(id_tag_cs)
+    print('remote start sended')
+    #---------------------------------------------
+    print('End remote transaction test')
+    await asyncio.sleep(7)
+    transaction_id_cs = 987
+    _ = await cp.send_remote_end_transaction(transaction_id_cs)
+    print('remote end sended')
 
 async def on_connect(websocket, path):
     """ For every new charge point that connects, create a ChargePoint instance
@@ -130,9 +172,16 @@ async def on_connect(websocket, path):
 
     """
     charge_point_id = path.strip('/')
-    cp = ChargePoint(charge_point_id, websocket)
+    # cp = ChargePoint(charge_point_id, websocket)
+    cp_created = ChargePoint_listener(charge_point_id, websocket)
 
-    await cp.start()
+    await asyncio.gather(
+                cp_created.start(),
+                remote_test(cp_created),
+                )
+    # await cp.start()
+    print('after cp.start')
+
 
 
 async def main():
@@ -143,9 +192,9 @@ async def main():
         9000,
         subprotocols=['ocpp1.6']
     )
-
+    print('between server and wait')
     await server.wait_closed()
-
+    print('after wait_closed')
 
 if __name__ == '__main__':
     asyncio.run(main())
