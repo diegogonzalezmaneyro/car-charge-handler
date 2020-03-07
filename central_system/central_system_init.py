@@ -9,7 +9,7 @@ from ocpp.v16.enums import *
 
 #as do not use database, implement an array were you can find
 #all the valid tokens
-valid_tokens = ["a36ef7b0","1234","12345","1111","2222"]
+valid_tokens = ["a36ef7b0","1234","12345","1111","2222",987]
 
 class ChargePoint_listener(cp):
     # ### START TEMPLATE ##
@@ -32,7 +32,8 @@ class ChargePoint_listener(cp):
     def on_boot_notification(self, charge_point_vendor, charge_point_model, **kwargs):
         return call_result.BootNotificationPayload(
             current_time=datetime.utcnow().isoformat(),
-            interval=300,
+            # interval=300,
+            interval=3,
             status=RegistrationStatus.accepted
         )
 
@@ -169,7 +170,7 @@ class ChargePoint_listener(cp):
         response = await self.call(request)
 
         if response.status ==  RemoteStartStopStatus.accepted:
-            print(" Stop transaction from central system accepted!")
+            print("Stop transaction from central system accepted!")
         else:
             print("Stop transaction from central system rejected!")
 
@@ -177,13 +178,13 @@ class ChargePoint_listener(cp):
 # FIRST CORE FUNCTION
 async def remote_test(cp):
     print('Start remote transaction test')
-    await asyncio.sleep(7)
-    id_tag_cs = "1234"
+    await asyncio.sleep(20)
+    id_tag_cs = "2222"
     _ = await cp.send_remote_start_transaction(id_tag_cs)
     print('remote start sended')
     #---------------------------------------------
     print('End remote transaction test')
-    await asyncio.sleep(7)
+    await asyncio.sleep(40)
     transaction_id_cs = 987
     _ = await cp.send_remote_end_transaction(transaction_id_cs)
     print('remote end sended')
@@ -209,7 +210,7 @@ async def main():
     server = await websockets.serve(
         on_connect,
         '0.0.0.0',
-        # '192.168.1.7',
+        # '192.168.1.8',
         9000,
         subprotocols=['ocpp1.6']
     )

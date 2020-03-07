@@ -2,6 +2,7 @@ import asyncio
 from ocpp.routing import on, after
 from ocpp.v16 import call, call_result, ChargePoint as cp
 from ocpp.v16.enums import *
+import time
 
 class ChargePoint(cp):
 
@@ -122,8 +123,14 @@ class ChargePoint(cp):
         return call_result.RemoteStartTransactionPayload(
             status=RemoteStartStopStatus.accepted
         )
-        global CHARGING
+    
+    @after(Action.RemoteStartTransaction)
+    def after_remote_start_transaction(self, id_tag):
         
+        line_to_save = '{};{}\n'.format(id_tag,time.time())
+        with open('rfid_inputs.txt', 'a') as file:
+            file.write(line_to_save)
+
         # return call_result.AuthorizePayload(
         #     id_tag_info={
         #         "status" : AuthorizationStatus.invalid
@@ -142,4 +149,4 @@ class ChargePoint(cp):
         #         "status" : AuthorizationStatus.invalid
         #     }
         # )
-
+        

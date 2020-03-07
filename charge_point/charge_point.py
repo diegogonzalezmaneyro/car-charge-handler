@@ -53,9 +53,9 @@ async def boot_heartbeat(cp, ser, c_p_model, c_p_vendor):
     global CHARGING
 
     HEARTBEAT_INTERVAL = await cp.send_boot_notification(c_p_model, c_p_vendor)
-    display_color = set_display_color(ser, 2, encode=True)
-    display_text = set_display_text(ser, 0, "__CONECTADO A___", encode=True)
-    display_text = set_display_text(ser, 1, "SISTEMA CENTRAL_", encode=True)
+    # display_color = set_display_color(ser, 2, encode=True)
+    # display_text = set_display_text(ser, 0, "__CONECTADO A___", encode=True)
+    # display_text = set_display_text(ser, 1, "SISTEMA CENTRAL_", encode=True)
     
     while True:
         await asyncio.sleep(HEARTBEAT_INTERVAL)
@@ -263,16 +263,16 @@ def check_rfid_input():
         return False,  str(0)
 
 async def main():
-    #Connection usb-serial with openEVSE and disable
-    ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
-    disable_open_EVSE = set_disable(ser,encode=True)
-    display_color = set_display_color(ser, 7, encode=True)
-    display_text = set_display_text(ser, 0, "INICIANDO.......", encode=True)
-    display_text = set_display_text(ser, 1, "POR FAVOR ESPERE", encode=True)
-
+    # #Connection usb-serial with openEVSE and disable
+    # ser = start_connection(SERIAL_NAME, BAUDRATE, TIMEOUT)
+    # disable_open_EVSE = set_disable(ser,encode=True)
+    # display_color = set_display_color(ser, 7, encode=True)
+    # display_text = set_display_text(ser, 0, "INICIANDO.......", encode=True)
+    # display_text = set_display_text(ser, 1, "POR FAVOR ESPERE", encode=True)
+    ser = 3
     async with websockets.connect(
         'ws://localhost:9000/CP_1', 
-        # 'wss://db9d0bb3.ngrok.io/CP_1',
+        # 'wss://6fdd23de.ngrok.io/proyectoD2V',
         # 'ws://movilidadelectricadev.corp.ute.com.uy/CentralSystemOCPP16J/WebSocketHandler.ashx/proyectoD2V',
         subprotocols=['ocpp1.6']
     ) as ws:
@@ -283,7 +283,7 @@ async def main():
         #Boot nofitication step
         c_p_model = CHARGE_POINT_MODEL
         c_p_vendor = CHARGE_POINT_VENDOR
-	
+
         #Charging values
         vc = VehicleCharge(
             RFID_VALUE,
@@ -296,7 +296,7 @@ async def main():
         await asyncio.gather(
                 cp.start(),
                 boot_heartbeat(cp, ser, c_p_model, c_p_vendor),
-                full_charge(cp, ser, ws, vc),
+                # full_charge(cp, ser, ws, vc),
                 # cp.send_boot_notification(c_p_model, c_p_vendor),
                 # cp.send_authorize(tag_rfid),
                 # cp.send_heartbeat(),
