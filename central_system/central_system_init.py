@@ -112,35 +112,12 @@ class ChargePoint_listener(cp):
     def after_stop_transaction(self, meter_stop, timestamp, transaction_id):
         print("Stop transaction ", transaction_id, "meter value: ", meter_stop )
 
-    ################## REMOTE START TRANS ##########################
-    @on(Action.RemoteStartTransaction)
-    def on_remote_start_transaction(self, id_tag):
-        return call_result.RemoteStartTransactionPayload(
-            status = RemoteStartStopStatus.accepted
-        )
-
-    @after(Action.RemoteStartTransaction)
-    def on_remote_start_trans(self, id_tag):
-        print("Remote start check")
-
-    ################## REMOTE STOP TRANS ##########################
-    @on(Action.RemoteStopTransaction)
-    def on_remote_stop_transaction(self, transaction_id):
-        return call_result.RemoteStopTransactionPayload(
-            status=RemoteStartStopStatus.accepted
-        )
-
-    @after(Action.RemoteStopTransaction)
-    def on_remote_stop_trans(self, transaction_id):
-        print("Remote stop check")
-
     ################## change ##########################
     @on(Action.ChangeAvailability)
     def on_change_availability(self, connector_id, av_type):
         return call_result.ChangeAvailabilityPayload(
             status=AvailabilityStatus.accepted
         )
-
 
     @after(Action.ChangeAvailability)
     def after_change_availability(self, connector_id, type):
@@ -156,9 +133,9 @@ class ChargePoint_listener(cp):
         response = await self.call(request)
 
         if response.status ==  RemoteStartStopStatus.accepted:
-            print(" Start transaction from central system accepted!")
+            print("Start remote transaction accepted from charge point!")
         else:
-            print("Start transaction from central system rejected!")
+            print("Start remote transaction rejected from charge point!")
 
     ################# REMOTE END TRANSACTION ##################
     async def send_remote_end_transaction(self, transaction_id_cs):
@@ -170,21 +147,21 @@ class ChargePoint_listener(cp):
         response = await self.call(request)
 
         if response.status ==  RemoteStartStopStatus.accepted:
-            print("Stop transaction from central system accepted!")
+            print("Stop remote transaction accepted from charge point!")
         else:
-            print("Stop transaction from central system rejected!")
+            print("Stop remote transaction rejected from charge point!")
 
 
 # FIRST CORE FUNCTION
 async def remote_test(cp):
-    print('Start remote transaction test')
-    await asyncio.sleep(20)
-    id_tag_cs = "2222"
-    _ = await cp.send_remote_start_transaction(id_tag_cs)
-    print('remote start sended')
+    # print('Start remote transaction test')
+    # await asyncio.sleep(20)
+    # id_tag_cs = "2222"
+    # _ = await cp.send_remote_start_transaction(id_tag_cs)
+    # print('remote start sended')
     #---------------------------------------------
     print('End remote transaction test')
-    await asyncio.sleep(40)
+    await asyncio.sleep(50)
     transaction_id_cs = 987
     _ = await cp.send_remote_end_transaction(transaction_id_cs)
     print('remote end sended')

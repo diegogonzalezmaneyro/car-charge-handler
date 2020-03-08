@@ -25,7 +25,6 @@ class ChargePoint(cp):
             print("Not connected to central system")
 
     ################## HEARTBEAT ##########################
-    # async def send_heartbeat(self, hb):
     async def send_heartbeat(self):
 
         request = call.HeartbeatPayload()
@@ -74,19 +73,17 @@ class ChargePoint(cp):
 
     ################## METER VALUES ##########################
     async def send_meter_values(self, connector, timestamp, met_value):
-        meter_dict = {
+        meter_array = []
+        meter_array.append({
         "timestamp": timestamp,
         "sampledValue": [
             {"value":met_value}]
-        }
+        })
         request = call.MeterValuesPayload(
             connector_id = connector,
-            meter_value = [
-                [str(timestamp), [int(met_value)]]
-            ]
+            meter_value = list(meter_array)
             # transaction_id = int ### Optional
         )
-
         response = await self.call(request)
 
         if response:
@@ -119,7 +116,7 @@ class ChargePoint(cp):
     ############# REMOTE START TRANSACTION ##################
     @on(Action.RemoteStartTransaction)
     def on_remote_start_transaction(self, id_tag):
-        print('por ahora acepto todo: ',id_tag)
+        print('START aceptado de id: ',id_tag)
         return call_result.RemoteStartTransactionPayload(
             status=RemoteStartStopStatus.accepted
         )
@@ -131,22 +128,18 @@ class ChargePoint(cp):
         with open('rfid_inputs.txt', 'a') as file:
             file.write(line_to_save)
 
-        # return call_result.AuthorizePayload(
-        #     id_tag_info={
-        #         "status" : AuthorizationStatus.invalid
-        #     }
-        # )
-
-    ############# REMOTE START TRANSACTION ##################
+    ############# REMOTE STOP TRANSACTION ##################
     @on(Action.RemoteStopTransaction)
-    def on_remote_end_transaction(self, transaction_id):
-        print('por ahora acepto todo: ',transaction_id)
-        return call_result.RemoteStartTransactionPayload(
+    def on_remote_stop_transaction(self, transaction_id):
+        print('STOP aceptado para transaccion: ',transaction_id)
+        return call_result.RemoteStopTransactionPayload(
             status=RemoteStartStopStatus.accepted
         )
-        # return call_result.AuthorizePayload(
-        #     id_tag_info={
-        #         "status" : AuthorizationStatus.invalid
-        #     }
-        # )
+
+    @after(Action.RemoteStopTransaction)
+    def after_remote_stop_transaction(self, transaction_id):
         
+        line_to_save = '{};{}\n'.format(transaction_id,time.time())
+        with open('rfid_inputs.txt', 'a') as file:
+            file.write(line_to_save)
+
